@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard - Advanced Phishing Detector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        h1 span {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-card {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .safe {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            border-left: 5px solid #00b09b;
+        }
+        
+        .phishing {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-left: 5px solid #c31432;
+        }
+        
+        .status {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .confidence-meter {
+            margin: 20px 0;
+        }
+        
+        .meter-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .meter-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+        
+        .safe .meter-fill {
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+        }
+        
+        .phishing .meter-fill {
+            background: linear-gradient(90deg, #c31432, #f5576c);
+        }
+        
+        .risk-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .risk-high {
+            background: #c31432;
+            color: white;
+        }
+        
+        .risk-medium {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .risk-low {
+            background: #00b09b;
+            color: white;
+        }
+        
+        .reasons {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+        
+        .reasons h3 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .reasons ul {
+            list-style: none;
+        }
+        
+        .reasons li {
+            margin: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .reasons li:before {
+            content: "⚠️";
+            position: absolute;
+            left: 0;
+        }
+        
+        .loading {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .examples {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .example-btn {
+            padding: 8px 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .example-btn:hover {
+            border-color: #667eea;
+            background: #f0f0f0;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #999;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span>PhishGuard</span> 🔍
+        </h1>
+        <p class="subtitle">Advanced AI-Powered Phishing URL Detector</p>
+        
+        <div class="input-group">
+            <input type="url" id="url" placeholder="Enter URL to check (e.g., https://google.com)" value="https://">
+            <button onclick="checkUrl()" id="checkBtn">Check URL</button>
+        </div>
+        
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Analyzing URL...</p>
+        </div>
+        
+        <div id="result"></div>
+        
+        <div class="examples">
+            <h3>📝 Try these examples:</h3>
+            <div class="example-buttons">
+                <button class="example-btn" onclick="useExample('https://google.com')">✅ google.com</button>
+                <button class="example-btn" onclick="useExample('https://paypal.com')">✅ paypal.com</button>
+                <button class="example-btn" onclick="useExample('http://paypal-secure-login.com')">⚠️ Suspicious PayPal</button>
+                <button class="example-btn" onclick="useExample('https://192.168.1.1/login')">⚠️ IP Address</button>
+                <button class="example-btn" onclick="useExample('http://bit.ly/3k9j2m1')">⚠️ Short URL</button>
+                <button class="example-btn" onclick="useExample('https://apple-id-verify.net')">⚠️ Fake Apple</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            ⚡ Powered by Machine Learning | Real-time URL Analysis
+        </div>
+    </div>
+
+    <script>
+        async function checkUrl() {
+            const url = document.getElementById('url').value;
+            if (!url || url === 'https://') {
+                alert('Please enter a valid URL');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('checkBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({url: url})
+                });
+                
+                const data = await response.json();
+                displayResult(data);
+            } catch (error) {
+                alert('Error checking URL. Please try again.');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('checkBtn').disabled = false;
+            }
+        }
+        
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            
+            let riskClass = '';
+            if (data.risk === 'HIGH') riskClass = 'risk-high';
+            else if (data.risk === 'MEDIUM') riskClass = 'risk-medium';
+            else riskClass = 'risk-low';
+            
+            let reasonsHtml = '';
+            if (data.reasons && data.reasons.length > 0) {
+                reasonsHtml = `
+                    <div class="reasons">
+                        <h3>⚠️ Warning Signs Detected:</h3>
+                        <ul>
+                            ${data.reasons.map(reason => `<li>${reason}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="result-card ${data.is_phishing ? 'phishing' : 'safe'}">
+                    <div class="status">
+                        ${data.is_phishing ? '⚠️ PHISHING DETECTED!' : '✅ URL APPEARS SAFE'}
+                    </div>
+                    
+                    <div class="confidence-meter">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>Confidence Score</span>
+                            <span><strong>${data.confidence}%</strong></span>
+                        </div>
+                        <div class="meter-bar">
+                            <div class="meter-fill" style="width: ${data.confidence}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="risk-badge ${riskClass}">
+                        Risk Level: ${data.risk}
+                    </div>
+                    
+                    ${reasonsHtml}
+                    
+                    <div style="margin-top: 15px; font-size: 0.9em; opacity: 0.8;">
+                        Score: ${data.score}/100
+                    </div>
+                </div>
+            `;
+        }
+        
+        function useExample(url) {
+            document.getElementById('url').value = url;
+            checkUrl();
+        }
+        
+        // Auto-check on paste (optional)
+        document.getElementById('url').addEventListener('paste', function() {
+            setTimeout(checkUrl, 100);
+        });
+    </script>
+</body>
+</html>

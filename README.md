@@ -65,7 +65,7 @@ PhishGuard analyzes URLs based on multiple rules, assigning a score for each sus
 
 ## 👨‍💻 Author
 
-**Mustafa** - [GitHub Profile](https://github.com/mustafah10281)
+**Frankline kahindi** - [GitHub Profile](https://github.com/frankline10281)
 
 ## 📄 License
 
